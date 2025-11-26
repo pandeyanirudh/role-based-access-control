@@ -1,29 +1,41 @@
 import userModel from "../model/user.model.js";
 
-export async function logout(req, res){
-    try{
-        const {userId} = req.body;
-        if(!user){
+export async function logout(req, res) {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
             return res.status(400).json({
                 err: true,
                 success: false,
-                message: "userId required"
-            })
+                message: "userId is required"
+            });
         }
 
-        const user = userModel.findOne({userId});
-        if(user){
-            user,refreshToken = null;
-            await user.save();
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                err: true,
+                success: false,
+                message: "User not found"
+            });
         }
 
-        res.json({message: "logout successfully"})
+        // Clear refresh token
+        user.refreshToken = null;
+        await user.save();
 
-    } catch(err){
+        return res.status(200).json({
+            err: false,
+            success: true,
+            message: "Logout successful"
+        });
+
+    } catch (err) {
         return res.status(500).json({
             err: true,
             success: false,
-            message: err || err.message
-        })
+            message: err.message || "Server error"
+        });
     }
 }
