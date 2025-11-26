@@ -41,7 +41,7 @@ export async function registerUser(req, res){
 
         return res.status(200).json({
             err: false,
-            success: false,
+            success: true,
             message: "User registered",
             user: {id: user._id, name: user.name, email: user.email, roles: user.roles},
             tokens: {accessToken, refreshToken}

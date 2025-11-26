@@ -13,41 +13,50 @@ export async function loginController(req, res){
             })
         }
 
-            const user = await userModel.findOne({email})
-            if(!user){
-                return res.status(401).json({
-                    err: true,
-                    success: false,
-                    message: "Invalid credentials"
-                })
-            }
-
-            const passwordComparison = await comparePassword(password, user.password);
-            if(!passwordComparison){
-                return res.status(401).json({
-                    err: true,
-                    success: false,
-                    message: "Invalid Credentials"
-                })
-            }
-
-            const refreshToken = generateRefreshToken({id: user._id, roles: user.roles});
-            const accessToken = generateAccessToken({id: user._id, roles: user.roles});
-
-            user.refreshToken = refreshToken;
-            await user.save();
-
-            return res.status(200).json({
-                err: false,
-                success: true,
-                message: "Login successfully"
+        const user = await userModel.findOne({email})
+        if(!user){
+            return res.status(401).json({
+                err: true,
+                success: false,
+                message: "Invalid credentials"
             })
+        }
+
+        const passwordComparison = await comparePassword(password, user.password);
+        if(!passwordComparison){
+            return res.status(401).json({
+                err: true,
+                success: false,
+                message: "Invalid Credentials"
+            })
+        }
+
+        // Generate tokens
+        const refreshToken = generateRefreshToken({id: user._id, roles: user.roles});
+        const accessToken = generateAccessToken({id: user._id, roles: user.roles});
+
+        // save refreshToken in DB
+        user.refreshToken = refreshToken;
+        await user.save();
+
+        return res.status(200).json({
+            err: false,
+            success: true,
+            message: "Login successfully",
+            accessToken,
+            refreshToken,
+            user: {
+                id: user._id,
+                email: user.email,
+                roles: user.roles
+            }
+        })
 
     } catch(err){
         return res.status(500).json({
             err: true,
             success: false,
-            message: err || err.message
+            message: err.message
         })
     }
 }
